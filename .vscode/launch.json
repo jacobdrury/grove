@@ -6,8 +6,9 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "${workspaceFolder}/cmd/main",
+      "program": "${workspaceFolder}",
       "cwd": "${workspaceFolder}",
+      "args": ["list"],
     },
   ]
 }

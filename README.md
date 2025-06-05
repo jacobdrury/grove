@@ -1,19 +1,45 @@
-# Go Template
+# git worktree manager
 
-This repository contains a simple template for a Go project.
-
-You can use [LetsTry](https://github.com/letstrygo/letstry) to create a new project based on this template.
-
-```bash
-$ lt new https://github.com/letstrygo/go-template.git
+```
+go install .../wt@latest
 ```
 
-Or, if you want to save the template locally, you can use:
-
 ```bash
-# Save the template locally
-$ lt import go https://github.com/letstrygo/go-template.git
-
-# Use the template
-$ lt new go
+wt init # Run from repo root
+    # Create .wt directory
+        # - config
+        # - seed_files/
+    # Create worktrees directory
+    # Adds both to local .gitignore
 ```
+
+`.wt/config`
+```yaml
+worktree:
+    main: ./worktrees/main
+    branch_prefix_aliases:
+        jolondirenko-smith: j
+    branch_name_format: ^{prefix}/{ticket}-.*$
+```
+
+```
+wt checkout j/fm-3112 [fuckit]
+```
+
+```sh
+wt rebase # called from within a worktree
+# pushd to main directory
+# checkout main
+# pull
+# popd to worktree directory
+# rebase
+```
+
+```
+cd ./worktrees/some-worktree
+wt rebase
+`.wt`, cd .., `.wt`
+```
+
+```
+wt switch 
