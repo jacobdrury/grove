@@ -33,7 +33,10 @@ func Checkout(arg CheckoutArgs) error {
 		return checkoutWorkTree(ctx, wt)
 	}
 
-	git.Fetch("-p")
+	err = git.Fetch("-p")
+	if err != nil {
+		return err
+	}
 
 	// 2. If branch exists on remote, add a new worktree for
 	if git.BranchExists(branch) {
