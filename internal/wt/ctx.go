@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/jacobdrury/wt/internal/config"
 	"github.com/jacobdrury/wt/internal/git"
+	"github.com/jacobdrury/wt/internal/util"
 	"github.com/otiai10/copy"
 )
 
@@ -72,12 +72,9 @@ func (ctx *WorkTreeContext) SeedWorkTree(wt *git.WorkTree) error {
 
 func (ctx *WorkTreeContext) ExecuteAfterCheckoutHooks() error {
 	for _, hook := range ctx.Config.Hooks.AfterCheckout {
-		cmdData := strings.Split(hook, " ")
-
-		cmd := exec.Command(ctx.Config.Hooks.Shell, cmdData...)
-		output, err := cmd.CombinedOutput()
+		output, err := util.ExecShellCmd(ctx.Config.Hooks.Shell, hook)
 		if err != nil {
-			return err
+			return fmt.Errorf("error executing hook: %s\n\n %v: %s", hook, err, string(output))
 		}
 		print(string(output))
 	}

@@ -42,7 +42,7 @@ func DefaultConfig() *Config {
 	case "windows":
 		defaultShell = "powershell"
 	default:
-		defaultShell = "sh"
+		defaultShell = "/bin/sh"
 	}
 
 	return &Config{
