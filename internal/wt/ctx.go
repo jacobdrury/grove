@@ -26,7 +26,7 @@ var (
 )
 
 const (
-	WTDirectoryName     string = ".wt"
+	WTDirectoryName     string = ".grove"
 	WTSeedDirectoryName string = "seed"
 	WTConfigFileName    string = "config.yaml"
 )
