@@ -41,8 +41,8 @@ worktrees-directory: ./worktrees
 
 # Used to resolve branch names
 branch-resolver:
-    prefix-aliases: {}
     branch-delimiter: /
+    prefix-aliases: {}
 
 # Commands to run during different events.
 hooks:
@@ -73,10 +73,10 @@ Branch names can be resolved using custom 'prefix aliases' configured in `.grove
 
 ```yaml
 branch-resolver:
+    branch-delimiter: /
     prefix-aliases:
         f: feature
         c: chore
-    branch-delimiter: /
 ```
 
 With the above configuration, the following would be true:

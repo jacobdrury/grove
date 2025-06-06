@@ -18,8 +18,8 @@ type Hooks struct {
 }
 
 type BranchResolver struct {
-	BranchPrefixAliases map[BranchPrefixAlias]BranchPrefix `yaml:"prefix-aliases"`
 	BranchDelimiter     string                             `yaml:"branch-delimiter"`
+	BranchPrefixAliases map[BranchPrefixAlias]BranchPrefix `yaml:"prefix-aliases"`
 }
 
 type Config struct {
