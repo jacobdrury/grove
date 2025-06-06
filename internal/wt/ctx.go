@@ -78,12 +78,15 @@ func (wtCtx *WorkTreeContext) SeedWorkTree(wt *git.WorkTree) error {
 func (wtCtx *WorkTreeContext) ExecuteAfterCheckoutHooks(ctx context.Context) error {
 	slog.Debug("executing after checkout hooks", slog.Int("numberOfHooks", len(wtCtx.Config.Hooks.AfterCheckout)))
 	for _, hook := range wtCtx.Config.Hooks.AfterCheckout {
-		output, err := util.ExecShellCmd(ctx, wtCtx.Config.Hooks.Shell, hook)
+		slog.Info("executing hook", slog.String("hook", hook))
+
+		err := util.ExecShellCmd(ctx, wtCtx.Config.Hooks.Shell, hook)
 		if err != nil {
-			return fmt.Errorf("error executing hook: %s\n\n %v: %s", hook, err, string(output))
+			return fmt.Errorf("error executing hook %s: %v", hook, err)
 		}
-		print(string(output))
 	}
+
+	slog.Debug("after checkout hooks executed")
 
 	return nil
 }
