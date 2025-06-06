@@ -15,7 +15,7 @@ var Command = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	return wt.Checkout(wt.CheckoutArgs{
+	return wt.Checkout(cmd.Context(), wt.CheckoutArgs{
 		Branch: args[0],
 	})
 }

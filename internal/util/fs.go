@@ -1,6 +1,9 @@
 package util
 
-import "os"
+import (
+	"log/slog"
+	"os"
+)
 
 func InDirectory(dir string, f func() error) error {
 	wd, err := os.Getwd()
@@ -8,7 +11,17 @@ func InDirectory(dir string, f func() error) error {
 		return err
 	}
 
-	os.Chdir(dir)
-	defer os.Chdir(wd)
+	err = os.Chdir(dir)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		err = os.Chdir(wd)
+		if err != nil {
+			slog.Error("error restoring working directory", slog.String("workingDirectory", wd), slog.String("error", err.Error()))
+		}
+	}()
+
 	return f()
 }

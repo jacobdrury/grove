@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
@@ -22,18 +24,22 @@ var rootCmd = &cobra.Command{
 			return nil
 		}
 
+		// If the first arg is a subcommand, return
 		if lo.SomeBy(cmd.Commands(), func(c *cobra.Command) bool {
 			return c.Name() == args[0] || c.HasAlias(args[0])
 		}) {
 			return nil
 		}
 
-		output, err := git.ExecuteWorkTree(strings.Join(args, " "))
+		slog.Debug("no subcommand found, passing through args to git worktree command", slog.String("args", strings.Join(args, " ")))
+
+		output, err := git.ExecuteWorkTree(cmd.Context(), strings.Join(args, " "))
 		if err != nil {
 			return err
 		}
 
-		print(output)
+		fmt.Print(output)
+
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -45,9 +51,9 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+func Execute(ctx context.Context) {
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
+		slog.Error(err.Error())
 		os.Exit(1)
 	}
 }

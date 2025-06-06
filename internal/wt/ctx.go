@@ -1,8 +1,10 @@
 package wt
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,38 +43,40 @@ type WorkTreeContext struct {
 	SeedDirectory string
 }
 
-func (ctx *WorkTreeContext) initialize() error {
-	err := os.Mkdir(ctx.Root, 0755)
+func (wtCtx *WorkTreeContext) initialize() error {
+	err := os.Mkdir(wtCtx.Root, 0755)
 	if err != nil {
 		return err
 	}
 
-	err = os.Mkdir(ctx.SeedDirectory, 0755)
+	err = os.Mkdir(wtCtx.SeedDirectory, 0755)
 	if err != nil {
 		return err
 	}
 
-	return ctx.Config.Save(filepath.Join(ctx.Root, WTConfigFileName))
+	return wtCtx.Config.Save(filepath.Join(wtCtx.Root, WTConfigFileName))
 }
 
-func (ctx *WorkTreeContext) ResolveBranch(val string) string {
-	parts := strings.Split(val, ctx.Config.BranchDelimiter)
+func (wtCtx *WorkTreeContext) ResolveBranch(val string) string {
+	parts := strings.Split(val, wtCtx.Config.BranchDelimiter)
 	for i, part := range parts {
-		if alias, ok := ctx.Config.BranchPrefixAliases[config.BranchPrefixAlias(part)]; ok {
+		if alias, ok := wtCtx.Config.BranchPrefixAliases[config.BranchPrefixAlias(part)]; ok {
 			parts[i] = string(alias)
 		}
 	}
 
-	return strings.Join(parts, ctx.Config.BranchDelimiter)
+	return strings.Join(parts, wtCtx.Config.BranchDelimiter)
 }
 
-func (ctx *WorkTreeContext) SeedWorkTree(wt *git.WorkTree) error {
-	return copy.Copy(ctx.SeedDirectory, wt.Path)
+func (wtCtx *WorkTreeContext) SeedWorkTree(wt *git.WorkTree) error {
+	slog.Debug("seeding worktree", slog.String("workTreePath", wt.Path), slog.String("seedDirectory", wtCtx.SeedDirectory))
+	return copy.Copy(wtCtx.SeedDirectory, wt.Path)
 }
 
-func (ctx *WorkTreeContext) ExecuteAfterCheckoutHooks() error {
-	for _, hook := range ctx.Config.Hooks.AfterCheckout {
-		output, err := util.ExecShellCmd(ctx.Config.Hooks.Shell, hook)
+func (wtCtx *WorkTreeContext) ExecuteAfterCheckoutHooks(ctx context.Context) error {
+	slog.Debug("executing after checkout hooks", slog.Int("numberOfHooks", len(wtCtx.Config.Hooks.AfterCheckout)))
+	for _, hook := range wtCtx.Config.Hooks.AfterCheckout {
+		output, err := util.ExecShellCmd(ctx, wtCtx.Config.Hooks.Shell, hook)
 		if err != nil {
 			return fmt.Errorf("error executing hook: %s\n\n %v: %s", hook, err, string(output))
 		}
@@ -85,8 +89,8 @@ func (ctx *WorkTreeContext) ExecuteAfterCheckoutHooks() error {
 // CreateContext creates a new default WTContext on the file system in the current
 // working directory. The current working directory must be a git repository
 // and not have a `.wt` context configured in it.
-func CreateContext() error {
-	inRepo, err := git.IsGitRepository()
+func CreateContext(ctx context.Context) error {
+	inRepo, err := git.IsGitRepository(ctx)
 	if err != nil {
 		return err
 	}
@@ -114,17 +118,17 @@ func CreateContext() error {
 	wtDir := filepath.Join(wd, WTDirectoryName)
 	seedDir := filepath.Join(wtDir, WTSeedDirectoryName)
 
-	ctx := &WorkTreeContext{
+	wtCtx := &WorkTreeContext{
 		Root:          wtDir,
 		Config:        config.DefaultConfig(),
 		SeedDirectory: seedDir,
 	}
 
-	return ctx.initialize()
+	return wtCtx.initialize()
 }
 
-// GetContext retrieves the current WTContext from memory.
-func GetContext() (*WorkTreeContext, error) {
+// GetWorkTreeContext retrieves the current WTContext from memory.
+func GetWorkTreeContext() (*WorkTreeContext, error) {
 	if wtContext == nil {
 		return nil, ErrNotLoaded
 	}
