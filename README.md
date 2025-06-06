@@ -61,7 +61,7 @@ hooks:
         - quick-build
 ```
 
-The above config will run the `quick-build` within the new worktree directory after it's been checked out.
+The above config will run the `quick-build` command within the new worktree directory after it's been checked out.
 
 ## Worktree Seeding
 
