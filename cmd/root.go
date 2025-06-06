@@ -9,6 +9,7 @@ import (
 
 	"github.com/jacobdrury/grove/cmd/checkout"
 	"github.com/jacobdrury/grove/cmd/initialize"
+	"github.com/jacobdrury/grove/cmd/version"
 	"github.com/jacobdrury/grove/internal/git"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
@@ -69,6 +70,7 @@ func init() {
 	rootCmd.AddCommand(
 		checkout.Command,
 		initialize.Command,
+		version.Command,
 	)
 
 	rootCmd.SilenceUsage = true
