@@ -42,4 +42,10 @@ wt rebase
 ```
 
 ```
-wt switch 
+wt checkout j/fm-3331
+
+slug_prefix_pattern = (fm|FM)-[0-9]+-
+
+jacob/fm-3331-fuck-idk <-- matches
+jacob/fm-3321-some-ther
+```
