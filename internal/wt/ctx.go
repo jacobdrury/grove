@@ -33,8 +33,10 @@ const (
 )
 
 type WorkTreeContext struct {
-	// Root is the root path to the `.wt` directory.
+	// Root is the root directory in which the `.wt` directory is stored
 	Root string
+	// WTDirectory is the root path to the `.wt` directory.
+	WTDirectory string
 	// WorkTreesPath is the path to the directory containing the worktrees
 	WorkTreesPath string
 	// Config is the wt configuration
@@ -44,7 +46,7 @@ type WorkTreeContext struct {
 }
 
 func (wtCtx *WorkTreeContext) initialize() error {
-	err := os.Mkdir(wtCtx.Root, 0755)
+	err := os.Mkdir(wtCtx.WTDirectory, 0755)
 	if err != nil {
 		return err
 	}
@@ -54,7 +56,7 @@ func (wtCtx *WorkTreeContext) initialize() error {
 		return err
 	}
 
-	return wtCtx.Config.Save(filepath.Join(wtCtx.Root, WTConfigFileName))
+	return wtCtx.Config.Save(filepath.Join(wtCtx.WTDirectory, WTConfigFileName))
 }
 
 func (wtCtx *WorkTreeContext) ResolveBranch(val string) string {
@@ -119,7 +121,7 @@ func CreateContext(ctx context.Context) error {
 	seedDir := filepath.Join(wtDir, WTSeedDirectoryName)
 
 	wtCtx := &WorkTreeContext{
-		Root:          wtDir,
+		WTDirectory:   wtDir,
 		Config:        config.DefaultConfig(),
 		SeedDirectory: seedDir,
 	}
@@ -153,12 +155,8 @@ func loadContext() (*WorkTreeContext, error) {
 		return nil, err
 	}
 
-	wtDir := filepath.Join(wd, WTDirectoryName)
-	if _, err := os.Stat(wtDir); err != nil {
-		if os.IsNotExist(err) {
-			return nil, ErrNotInitialized
-		}
-
+	wtDir, err := locateWtDir(wd)
+	if err != nil {
 		return nil, err
 	}
 
@@ -186,8 +184,28 @@ func loadContext() (*WorkTreeContext, error) {
 	}
 
 	return &WorkTreeContext{
-		Root:          wtDir,
+		Root:          filepath.Dir(wtDir),
+		WTDirectory:   wtDir,
 		Config:        cfg,
 		SeedDirectory: seedPath,
 	}, nil
+}
+
+func locateWtDir(startPath string) (string, error) {
+	dir := startPath
+	for {
+		wtPath := filepath.Join(dir, WTDirectoryName)
+		info, err := os.Stat(wtPath)
+		if err == nil && info.IsDir() {
+			return wtPath, nil
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
+
+	return "", ErrNotInitialized
 }

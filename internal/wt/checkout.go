@@ -21,58 +21,60 @@ func Checkout(ctx context.Context, arg CheckoutArgs) error {
 		return err
 	}
 
-	branch := wtCtx.ResolveBranch(arg.Branch)
-	slog.Info("checking out", slog.String("branch", branch))
+	return util.InDirectory(wtCtx.Root, func() error {
+		branch := wtCtx.ResolveBranch(arg.Branch)
+		slog.Info("checking out", slog.String("branch", branch))
 
-	wt, err := git.FindWorkTree(ctx, branch)
-	if err != nil && !errors.Is(err, git.ErrWorkTreeNotFound) {
-		return err
-	}
+		wt, err := git.FindWorkTree(ctx, branch)
+		if err != nil && !errors.Is(err, git.ErrWorkTreeNotFound) {
+			return err
+		}
 
-	if wt != nil {
-		slog.Info("worktree already exists, switching to it")
-		return checkoutWorkTree(ctx, wtCtx, wt)
-	}
+		if wt != nil {
+			slog.Info("worktree already exists, switching to it")
+			return checkoutWorkTree(ctx, wtCtx, wt)
+		}
 
-	err = git.Fetch(ctx, "-p")
-	if err != nil {
-		return err
-	}
+		err = git.Fetch(ctx, "-p")
+		if err != nil {
+			return err
+		}
 
-	// 2. If branch exists on remote, add a new worktree for
-	if git.BranchExists(ctx, branch) {
-		slog.Info("branch exists on remote, creating new worktree from branch")
+		// 2. If branch exists on remote, add a new worktree for
+		if git.BranchExists(ctx, branch) {
+			slog.Info("branch exists on remote, creating new worktree from branch")
 
-		wt, err = git.CreateWorkTreeFromBranch(ctx, wtCtx.Config.WorkTreesDirectory, branch)
+			wt, err = git.CreateWorkTreeFromBranch(ctx, wtCtx.Config.WorkTreesDirectory, branch)
+			if err != nil {
+				return err
+			}
+
+			return checkoutWorkTree(ctx, wtCtx, wt)
+		}
+
+		mainWt, err := git.FindWorkTree(ctx, "main")
+		if err != nil {
+			return fmt.Errorf("error finding main worktree: %v", err)
+		}
+
+		// Update main worktree
+		err = util.InDirectory(mainWt.Path, func() error {
+			slog.Info("pulling main")
+
+			return git.Pull(ctx)
+		})
+		if err != nil {
+			return err
+		}
+
+		slog.Info("creating new worktree based on main", slog.String("branch", branch))
+		wt, err = git.CreateWorkTreeFromNewBranch(ctx, wtCtx.Config.WorkTreesDirectory, branch)
 		if err != nil {
 			return err
 		}
 
 		return checkoutWorkTree(ctx, wtCtx, wt)
-	}
-
-	mainWt, err := git.FindWorkTree(ctx, "main")
-	if err != nil {
-		return fmt.Errorf("error finding main worktree: %v", err)
-	}
-
-	// Update main worktree
-	err = util.InDirectory(mainWt.Path, func() error {
-		slog.Info("pulling main")
-
-		return git.Pull(ctx)
 	})
-	if err != nil {
-		return err
-	}
-
-	slog.Info("creating new worktree based on main", slog.String("branch", branch))
-	wt, err = git.CreateWorkTreeFromNewBranch(ctx, wtCtx.Config.WorkTreesDirectory, branch)
-	if err != nil {
-		return err
-	}
-
-	return checkoutWorkTree(ctx, wtCtx, wt)
 }
 
 func checkoutWorkTree(ctx context.Context, wtCtx *WorkTreeContext, wt *git.WorkTree) error {
@@ -97,7 +99,7 @@ func checkoutWorkTree(ctx context.Context, wtCtx *WorkTreeContext, wt *git.WorkT
 		return err
 	}
 
-	fmt.Printf("Checked out: %v", wt.Path)
+	slog.Info("checked out worktree", slog.String("path", wt.Path))
 
 	return nil
 }
