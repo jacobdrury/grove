@@ -16,8 +16,8 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:           "wt",
-	Short:         "wt is a git worktree manager",
+	Use:           "grove",
+	Short:         "Grove is a wrapper around the `git worktree` command.",
 	SilenceErrors: true, // Errors are output to stderr so we don't need to print them
 	Args: func(cmd *cobra.Command, args []string) error {
 		// If there are args, check if the first is a valid subcommand

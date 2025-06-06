@@ -3,6 +3,7 @@ package git
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -16,8 +17,8 @@ var (
 )
 
 // ExecuteWorkTree runs a `git worktree` command with the specified arguments.
-func ExecuteWorkTree(ctx context.Context, fmt string, args ...any) (string, error) {
-	return execute(ctx, "worktree %v", args...)
+func ExecuteWorkTree(ctx context.Context, cmd string, args ...any) (string, error) {
+	return execute(ctx, fmt.Sprintf("worktree %v", cmd), args...)
 }
 
 func ListWorkTrees(ctx context.Context) ([]WorkTree, error) {
