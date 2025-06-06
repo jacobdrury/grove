@@ -2,6 +2,8 @@
 
 Grove is a wrapper around the `git worktree` command.
 
+Grove takes the approach of "every branch should have it's own worktree".
+
 ## Features
 
 - [Customizable Hooks](#hooks)
