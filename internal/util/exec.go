@@ -2,12 +2,13 @@ package util
 
 import (
 	"context"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 )
 
-func ExecShellCmd(ctx context.Context, shell string, cmd string) (string, error) {
+func ExecShellCmd(ctx context.Context, shell string, cmd string) error {
 	var command *exec.Cmd
 
 	// Normalize shell name for comparison
@@ -22,9 +23,11 @@ func ExecShellCmd(ctx context.Context, shell string, cmd string) (string, error)
 		command = exec.CommandContext(ctx, shell, "/C", cmd)
 	default:
 		// Unix shells: use -c
-		command = exec.CommandContext(ctx, shell, "-c", cmd)
+		command = exec.CommandContext(ctx, shell, "-i", "-c", cmd)
 	}
 
-	out, err := command.CombinedOutput()
-	return string(out), err
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
+
+	return command.Run()
 }
