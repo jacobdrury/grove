@@ -8,7 +8,10 @@
       "mode": "auto",
       "program": "${workspaceFolder}",
       "cwd": "${workspaceFolder}",
-      "args": ["list"],
+      "env": {
+        "LOG_LEVEL": "debug",
+      },
+      "args": ["checkout", "example"],
     },
   ]
 }

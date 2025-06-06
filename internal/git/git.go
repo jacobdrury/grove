@@ -145,6 +145,27 @@ func BranchExists(ctx context.Context, name string) bool {
 	return len(strings.TrimSpace(output)) > 0
 }
 
+func ListBranches(ctx context.Context) ([]string, error) {
+	output, err := execute(ctx, "for-each-ref --format='%%(refname:short)' refs/heads/ refs/remotes/")
+	if err != nil {
+		return nil, err
+	}
+
+	branches := strings.Split(output, "\n")
+	branches = lo.Map(branches, func(b string, _ int) string {
+		b = strings.Trim(b, " '")
+		b = strings.TrimPrefix(b, "origin/")
+
+		return b
+	})
+	branches = lo.Uniq(branches)
+	branches = lo.Filter(branches, func(b string, _ int) bool {
+		return len(b) > 0 && b != "remote"
+	})
+
+	return branches, nil
+}
+
 func ExecuteWorkTree(ctx context.Context, args string) (string, error) {
 	return execute(ctx, "worktree %v", args)
 }

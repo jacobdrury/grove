@@ -3,7 +3,9 @@ package config
 import (
 	"os"
 	"runtime"
+	"strings"
 
+	"github.com/samber/lo"
 	"gopkg.in/yaml.v3"
 )
 
@@ -17,13 +19,53 @@ type Hooks struct {
 	AfterCheckout []string `yaml:"after-checkout"`
 }
 
-type Config struct {
-	WorkTreesDirectory  string                             `yaml:"worktrees-directory"`
+type BranchResolver struct {
 	BranchPrefixAliases map[BranchPrefixAlias]BranchPrefix `yaml:"prefix-aliases"`
 	BranchDelimiter     string                             `yaml:"branch-delimiter"`
-	Hooks               Hooks                              `yaml:"hooks"`
+}
 
-	// BranchSlugFormatPattern *regexp.Regexp                     `yaml:"slug-format"` // FUTURE: :(
+func (b *BranchResolver) Resolve(val string, branches []string) string {
+	originalParts := strings.Split(val, b.BranchDelimiter)
+	parts := originalParts
+
+	for i, part := range parts {
+		// Expand aliases
+		if i != len(parts)-1 {
+			if alias, ok := b.BranchPrefixAliases[BranchPrefixAlias(part)]; ok {
+				parts[i] = string(alias)
+			}
+
+			continue
+		}
+
+		// Resolve by exact match
+		if branch, ok := lo.Find(branches, func(branch string) bool {
+			return branch == strings.Join(parts, b.BranchDelimiter)
+		}); ok {
+			return branch
+		}
+
+		// Resolve slug by prefix match
+		for _, branch := range branches {
+			branchParts := strings.Split(branch, b.BranchDelimiter)
+			slug := branchParts[len(branchParts)-1]
+			prefix := strings.Join(branchParts[:len(branchParts)-1], b.BranchDelimiter)
+			resolvedPrefix := strings.Join(parts[:len(parts)-1], b.BranchDelimiter)
+
+			if strings.HasPrefix(slug, part) && prefix == resolvedPrefix {
+				parts[i] = slug
+				break
+			}
+		}
+	}
+
+	return strings.Join(parts, b.BranchDelimiter)
+}
+
+type Config struct {
+	WorkTreesDirectory string         `yaml:"worktrees-directory"`
+	BranchResolver     BranchResolver `yaml:"branch-resolver"`
+	Hooks              Hooks          `yaml:"hooks"`
 }
 
 // Save saves the configuration to the specified path.
@@ -40,7 +82,10 @@ func DefaultConfig() *Config {
 	var defaultShell string
 	switch runtime.GOOS {
 	case "windows":
-		defaultShell = "powershell"
+		defaultShell = os.Getenv("ComSpec")
+		if defaultShell == "" {
+			defaultShell = "C:\\Windows\\system32\\cmd.exe"
+		}
 	default:
 		defaultShell = os.Getenv("SHELL")
 		if defaultShell == "" {
@@ -49,15 +94,15 @@ func DefaultConfig() *Config {
 	}
 
 	return &Config{
-		WorkTreesDirectory:  "./worktrees",
-		BranchPrefixAliases: map[BranchPrefixAlias]BranchPrefix{},
-		BranchDelimiter:     "/",
+		WorkTreesDirectory: "./worktrees",
+		BranchResolver: BranchResolver{
+			BranchPrefixAliases: map[BranchPrefixAlias]BranchPrefix{},
+			BranchDelimiter:     "/",
+		},
 		Hooks: Hooks{
 			Shell:         defaultShell,
 			AfterCheckout: []string{},
 		},
-
-		// BranchSlugFormatPattern: regexp.MustCompile(`^.*$`), // FUTURE: :(
 	}
 }
 
