@@ -3,9 +3,7 @@ package config
 import (
 	"os"
 	"runtime"
-	"strings"
 
-	"github.com/samber/lo"
 	"gopkg.in/yaml.v3"
 )
 
@@ -24,58 +22,10 @@ type BranchResolver struct {
 	BranchDelimiter     string                             `yaml:"branch-delimiter"`
 }
 
-func (b *BranchResolver) Resolve(val string, branches []string) string {
-	originalParts := strings.Split(val, b.BranchDelimiter)
-	parts := originalParts
-
-	for i, part := range parts {
-		// Expand aliases
-		if i != len(parts)-1 {
-			if alias, ok := b.BranchPrefixAliases[BranchPrefixAlias(part)]; ok {
-				parts[i] = string(alias)
-			}
-
-			continue
-		}
-
-		// Resolve by exact match
-		if branch, ok := lo.Find(branches, func(branch string) bool {
-			return branch == strings.Join(parts, b.BranchDelimiter)
-		}); ok {
-			return branch
-		}
-
-		// Resolve slug by prefix match
-		for _, branch := range branches {
-			branchParts := strings.Split(branch, b.BranchDelimiter)
-			slug := branchParts[len(branchParts)-1]
-			prefix := strings.Join(branchParts[:len(branchParts)-1], b.BranchDelimiter)
-			resolvedPrefix := strings.Join(parts[:len(parts)-1], b.BranchDelimiter)
-
-			if strings.HasPrefix(slug, part) && prefix == resolvedPrefix {
-				parts[i] = slug
-				break
-			}
-		}
-	}
-
-	return strings.Join(parts, b.BranchDelimiter)
-}
-
 type Config struct {
 	WorkTreesDirectory string         `yaml:"worktrees-directory"`
 	BranchResolver     BranchResolver `yaml:"branch-resolver"`
 	Hooks              Hooks          `yaml:"hooks"`
-}
-
-// Save saves the configuration to the specified path.
-func (c *Config) Save(path string) error {
-	marshaled, err := yaml.Marshal(c)
-	if err != nil {
-		return err
-	}
-
-	return os.WriteFile(path, marshaled, 0644)
 }
 
 func DefaultConfig() *Config {
@@ -104,6 +54,16 @@ func DefaultConfig() *Config {
 			AfterCheckout: []string{},
 		},
 	}
+}
+
+// Save saves the configuration to the specified path.
+func (c *Config) Save(path string) error {
+	marshaled, err := yaml.Marshal(c)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(path, marshaled, 0644)
 }
 
 // Load loads the config at the specified path into memory.

@@ -1,13 +1,19 @@
-package config
+package grove
 
 import (
 	"testing"
+
+	"github.com/jacobdrury/grove/internal/config"
 )
 
 func TestBranchResolver(t *testing.T) {
-	br := BranchResolver{
-		BranchPrefixAliases: map[BranchPrefixAlias]BranchPrefix{"u": "user1"},
-		BranchDelimiter:     "/",
+	grove := Grove{
+		Config: &config.Config{
+			BranchResolver: config.BranchResolver{
+				BranchPrefixAliases: map[config.BranchPrefixAlias]config.BranchPrefix{"u": "user1"},
+				BranchDelimiter:     "/",
+			},
+		},
 	}
 
 	branches := []string{
@@ -35,7 +41,7 @@ func TestBranchResolver(t *testing.T) {
 		t.Run(tc.in, func(t *testing.T) {
 			t.Parallel()
 
-			if resolved := br.Resolve(tc.in, branches); resolved != tc.out {
+			if resolved := grove.resolveBranch(tc.in, branches); resolved != tc.out {
 				t.Errorf("'%v' -> '%v' != '%v'", tc.in, resolved, tc.out)
 			}
 		})

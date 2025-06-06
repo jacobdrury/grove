@@ -1,7 +1,7 @@
 package checkout
 
 import (
-	"github.com/jacobdrury/grove/internal/wt"
+	"github.com/jacobdrury/grove/internal/grove"
 	"github.com/spf13/cobra"
 )
 
@@ -15,11 +15,16 @@ var Command = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	return wt.Checkout(cmd.Context(), wt.CheckoutArgs{
+	g, err := grove.GetInstance()
+	if err != nil {
+		return err
+	}
+
+	return g.Checkout(cmd.Context(), grove.CheckoutArgs{
 		Branch: args[0],
 	})
 }
 
 func persistentPreRun(cmd *cobra.Command, args []string) error {
-	return wt.LoadContext()
+	return grove.Load()
 }

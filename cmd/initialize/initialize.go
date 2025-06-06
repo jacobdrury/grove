@@ -1,7 +1,7 @@
 package initialize
 
 import (
-	"github.com/jacobdrury/grove/internal/wt"
+	"github.com/jacobdrury/grove/internal/grove"
 	"github.com/spf13/cobra"
 )
 
@@ -12,5 +12,6 @@ var Command = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	return wt.CreateContext(cmd.Context())
+	_, err := grove.New(cmd.Context())
+	return err
 }
