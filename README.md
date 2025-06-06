@@ -1,51 +1,21 @@
-# git worktree manager
+# Grove
 
-```
-go install .../wt@latest
-```
+Grove is a wrapper around the `git worktree` command.
 
-```bash
-wt init # Run from repo root
-    # Create .wt directory
-        # - config
-        # - seed_files/
-    # Create worktrees directory
-    # Adds both to local .gitignore
-```
+## Features
 
-`.wt/config`
-```yaml
-worktree:
-    main: ./worktrees/main
-    branch_prefix_aliases:
-        jolondirenko-smith: j
-    branch_name_format: ^{prefix}/{ticket}-.*$
-```
+- After checkout hook
+- Branch name resolution
+- Worktree seeding
 
-```
-wt checkout j/fm-3112 [fuckit]
-```
+## Usage
 
 ```sh
-wt rebase # called from within a worktree
-# pushd to main directory
-# checkout main
-# pull
-# popd to worktree directory
-# rebase
+# Initialize grove in your repository
+$ grove init
+
+# Checkout a worktree
+$ grove checkout <branch-name>
 ```
 
-```
-cd ./worktrees/some-worktree
-wt rebase
-`.wt`, cd .., `.wt`
-```
-
-```
-wt checkout j/fm-3331
-
-slug_prefix_pattern = (fm|FM)\-[0-9]+\-
-
-jacob/fm-3331-fuck-idk <-- matches
-jacob/fm-3321-some-ther
-```
+All other commands are automatically forwarded to `git worktree`.
