@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"syscall"
 
-	"github.com/jacobdrury/wt/cmd"
+	"github.com/jacobdrury/grove/cmd"
 	"github.com/lmittmann/tint"
 	"github.com/mattn/go-colorable"
 )

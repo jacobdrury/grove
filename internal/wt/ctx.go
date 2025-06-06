@@ -8,9 +8,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jacobdrury/wt/internal/config"
-	"github.com/jacobdrury/wt/internal/git"
-	"github.com/jacobdrury/wt/internal/util"
+	"github.com/jacobdrury/grove/internal/config"
+	"github.com/jacobdrury/grove/internal/git"
+	"github.com/jacobdrury/grove/internal/util"
 	"github.com/otiai10/copy"
 )
 

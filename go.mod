@@ -1,4 +1,4 @@
-module github.com/jacobdrury/wt
+module github.com/jacobdrury/grove
 
 go 1.24
 

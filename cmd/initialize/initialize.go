@@ -1,7 +1,7 @@
 package initialize
 
 import (
-	"github.com/jacobdrury/wt/internal/wt"
+	"github.com/jacobdrury/grove/internal/wt"
 	"github.com/spf13/cobra"
 )
 

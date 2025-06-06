@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/jacobdrury/wt/internal/git"
-	"github.com/jacobdrury/wt/internal/util"
+	"github.com/jacobdrury/grove/internal/git"
+	"github.com/jacobdrury/grove/internal/util"
 )
 
 type CheckoutArgs struct {

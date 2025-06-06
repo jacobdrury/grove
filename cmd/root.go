@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jacobdrury/wt/cmd/checkout"
-	"github.com/jacobdrury/wt/cmd/initialize"
-	"github.com/jacobdrury/wt/internal/git"
+	"github.com/jacobdrury/grove/cmd/checkout"
+	"github.com/jacobdrury/grove/cmd/initialize"
+	"github.com/jacobdrury/grove/internal/git"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 )
