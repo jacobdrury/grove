@@ -22,7 +22,12 @@ func Checkout(ctx context.Context, arg CheckoutArgs) error {
 	}
 
 	return util.InDirectory(wtCtx.Root, func() error {
-		branch := wtCtx.ResolveBranch(arg.Branch)
+		branches, err := git.ListBranches(ctx)
+		if err != nil {
+			return err
+		}
+
+		branch := wtCtx.Config.BranchResolver.Resolve(arg.Branch, branches)
 		slog.Info("checking out", slog.String("branch", branch))
 
 		wt, err := git.FindWorkTree(ctx, branch)

@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/jacobdrury/wt/internal/config"
 	"github.com/jacobdrury/wt/internal/git"
@@ -57,17 +56,6 @@ func (wtCtx *WorkTreeContext) initialize() error {
 	}
 
 	return wtCtx.Config.Save(filepath.Join(wtCtx.WTDirectory, WTConfigFileName))
-}
-
-func (wtCtx *WorkTreeContext) ResolveBranch(val string) string {
-	parts := strings.Split(val, wtCtx.Config.BranchDelimiter)
-	for i, part := range parts {
-		if alias, ok := wtCtx.Config.BranchPrefixAliases[config.BranchPrefixAlias(part)]; ok {
-			parts[i] = string(alias)
-		}
-	}
-
-	return strings.Join(parts, wtCtx.Config.BranchDelimiter)
 }
 
 func (wtCtx *WorkTreeContext) SeedWorkTree(wt *git.WorkTree) error {
