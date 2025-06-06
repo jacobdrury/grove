@@ -1,8 +1,10 @@
 package git
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -52,8 +54,8 @@ func ValidateGitInstallation() error {
 	return err
 }
 
-func IsGitRepository() (bool, error) {
-	res, err := execute("rev-parse --is-inside-work-tree")
+func IsGitRepository(ctx context.Context) (bool, error) {
+	res, err := execute(ctx, "rev-parse --is-inside-work-tree")
 	if err != nil {
 		return false, err
 	}
@@ -61,8 +63,8 @@ func IsGitRepository() (bool, error) {
 	return strings.TrimSpace(res) == "true", nil
 }
 
-func ListWorkTrees() ([]WorkTree, error) {
-	output, err := execute("worktree list")
+func ListWorkTrees(ctx context.Context) ([]WorkTree, error) {
+	output, err := execute(ctx, "worktree list")
 	if err != nil {
 		return nil, err
 	}
@@ -77,18 +79,18 @@ func ListWorkTrees() ([]WorkTree, error) {
 	}), nil
 }
 
-func Pull() error {
-	_, err := execute("pull")
+func Pull(ctx context.Context) error {
+	_, err := execute(ctx, "pull")
 	return err
 }
 
-func Fetch(args ...string) error {
-	_, err := execute("fetch %v", strings.Join(args, " "))
+func Fetch(ctx context.Context, args ...string) error {
+	_, err := execute(ctx, "fetch %v", strings.Join(args, " "))
 	return err
 }
 
-func FindWorkTree(branch string) (*WorkTree, error) {
-	wts, err := ListWorkTrees()
+func FindWorkTree(ctx context.Context, branch string) (*WorkTree, error) {
+	wts, err := ListWorkTrees(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -103,30 +105,30 @@ func FindWorkTree(branch string) (*WorkTree, error) {
 }
 
 // git worktree add $newWorkTree $branch_name
-func CreateWorkTreeFromBranch(worktreesPath string, branch string) (*WorkTree, error) {
+func CreateWorkTreeFromBranch(ctx context.Context, worktreesPath string, branch string) (*WorkTree, error) {
 	worktreePath := filepath.Join(worktreesPath, branch)
 
-	_, err := execute("worktree add %v %v", worktreePath, branch)
+	_, err := execute(ctx, "worktree add %v %v", worktreePath, branch)
 	if err != nil {
 		return nil, err
 	}
 
-	return FindWorkTree(branch)
+	return FindWorkTree(ctx, branch)
 }
 
-func CreateWorkTreeFromNewBranch(worktreesPath string, branch string) (*WorkTree, error) {
+func CreateWorkTreeFromNewBranch(ctx context.Context, worktreesPath string, branch string) (*WorkTree, error) {
 	worktreePath := filepath.Join(worktreesPath, branch)
 
-	_, err := execute("worktree add -b %v %v main", branch, worktreePath)
+	_, err := execute(ctx, "worktree add -b %v %v main", branch, worktreePath)
 	if err != nil {
 		return nil, err
 	}
 
-	return FindWorkTree(branch)
+	return FindWorkTree(ctx, branch)
 }
 
-func BranchExists(name string) bool {
-	output, err := execute("branch --list %v", name)
+func BranchExists(ctx context.Context, name string) bool {
+	output, err := execute(ctx, "branch --list %v", name)
 	if err != nil {
 		return false
 	}
@@ -135,7 +137,7 @@ func BranchExists(name string) bool {
 		return true
 	}
 
-	output, err = execute("ls-remote --heads origin %v", name)
+	output, err = execute(ctx, "ls-remote --heads origin %v", name)
 	if err != nil {
 		return false
 	}
@@ -143,15 +145,18 @@ func BranchExists(name string) bool {
 	return len(strings.TrimSpace(output)) > 0
 }
 
-func ExecuteWorkTree(args string) (string, error) {
-	return execute("worktree %v", args)
+func ExecuteWorkTree(ctx context.Context, args string) (string, error) {
+	return execute(ctx, "worktree %v", args)
 }
 
-func execute(format string, args ...any) (string, error) {
+func execute(ctx context.Context, format string, args ...any) (string, error) {
+	slog.Debug("executing git command", slog.String("command", fmt.Sprintf(format, args...)))
+
 	cmdFormatted := fmt.Sprintf(format, args...)
-	cmd := exec.Command("git", strings.Split(cmdFormatted, " ")...)
+	cmd := exec.CommandContext(ctx, "git", strings.Split(cmdFormatted, " ")...)
 	output, err := cmd.CombinedOutput()
 
-	// fmt.Printf("%v: %v\n", cmdFormatted, err)
+	slog.Debug("git command output", slog.String("command", cmdFormatted), slog.String("output", string(output)))
+
 	return string(output), err
 }

@@ -42,7 +42,10 @@ func DefaultConfig() *Config {
 	case "windows":
 		defaultShell = "powershell"
 	default:
-		defaultShell = "/bin/sh"
+		defaultShell = os.Getenv("SHELL")
+		if defaultShell == "" {
+			defaultShell = "/bin/sh"
+		}
 	}
 
 	return &Config{

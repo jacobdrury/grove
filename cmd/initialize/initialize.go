@@ -12,5 +12,5 @@ var Command = &cobra.Command{
 }
 
 func run(cmd *cobra.Command, args []string) error {
-	return wt.CreateContext()
+	return wt.CreateContext(cmd.Context())
 }
