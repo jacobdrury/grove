@@ -5,15 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/samber/lo"
 )
 
 var (
-	ErrWorkTreeNotFound       = errors.New("not found")
-	workTreeListFormatPattern = regexp.MustCompile(`^(.*)\s+([a-f0-9]+)\s+\[(.*)\]`)
+	ErrWorkTreeNotFound = errors.New("not found")
 )
 
 // ExecuteWorkTree runs a `git worktree` command with the specified arguments.
@@ -52,8 +50,8 @@ func FindWorkTree(ctx context.Context, branch string) (*WorkTree, error) {
 	return nil, ErrWorkTreeNotFound
 }
 
-func CreateWorkTreeFromBranch(ctx context.Context, worktreesPath string, branch string) (*WorkTree, error) {
-	worktreePath := filepath.Join(worktreesPath, branch)
+func CreateWorkTreeFromBranch(ctx context.Context, worktreesPath string, name string, branch string) (*WorkTree, error) {
+	worktreePath := filepath.Join(worktreesPath, name)
 
 	_, err := ExecuteWorkTree(ctx, "add %v %v", worktreePath, branch)
 	if err != nil {
@@ -63,8 +61,8 @@ func CreateWorkTreeFromBranch(ctx context.Context, worktreesPath string, branch 
 	return FindWorkTree(ctx, branch)
 }
 
-func CreateWorkTreeFromNewBranch(ctx context.Context, worktreesPath string, branch string) (*WorkTree, error) {
-	worktreePath := filepath.Join(worktreesPath, branch)
+func CreateWorkTreeFromNewBranch(ctx context.Context, worktreesPath string, name string, branch string) (*WorkTree, error) {
+	worktreePath := filepath.Join(worktreesPath, name)
 
 	_, err := ExecuteWorkTree(ctx, "add -b %v %v main", branch, worktreePath)
 	if err != nil {

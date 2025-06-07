@@ -26,7 +26,8 @@ func (grove *Grove) Checkout(ctx context.Context, arg CheckoutArgs) error {
 			return err
 		}
 
-		branch := grove.resolveBranch(arg.Branch, branches)
+		name := arg.Branch
+		branch := grove.resolveBranch(name, branches)
 		slog.Info("checking out", slog.String("branch", branch))
 
 		wt, err := git.FindWorkTree(ctx, branch)
@@ -48,7 +49,7 @@ func (grove *Grove) Checkout(ctx context.Context, arg CheckoutArgs) error {
 		if git.BranchExists(ctx, branch) {
 			slog.Info("branch exists on remote, creating new worktree from branch")
 
-			wt, err = git.CreateWorkTreeFromBranch(ctx, grove.Config.WorkTreesDirectory, branch)
+			wt, err = git.CreateWorkTreeFromBranch(ctx, grove.Config.WorkTreesDirectory, name, branch)
 			if err != nil {
 				return err
 			}
@@ -72,7 +73,7 @@ func (grove *Grove) Checkout(ctx context.Context, arg CheckoutArgs) error {
 		}
 
 		slog.Info("creating new worktree based on main", slog.String("branch", branch))
-		wt, err = git.CreateWorkTreeFromNewBranch(ctx, grove.Config.WorkTreesDirectory, branch)
+		wt, err = git.CreateWorkTreeFromNewBranch(ctx, grove.Config.WorkTreesDirectory, name, branch)
 		if err != nil {
 			return err
 		}
