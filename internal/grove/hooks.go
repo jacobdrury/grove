@@ -9,9 +9,9 @@ import (
 )
 
 func (grove *Grove) executeAfterCheckoutHooks(ctx context.Context) error {
-	slog.Debug("executing after checkout hooks", slog.Int("numberOfHooks", len(grove.Config.Hooks.AfterCheckout)))
+	slog.DebugContext(ctx, "executing after checkout hooks", slog.Int("numberOfHooks", len(grove.Config.Hooks.AfterCheckout)))
 	for _, hook := range grove.Config.Hooks.AfterCheckout {
-		slog.Info("executing hook", slog.String("hook", hook))
+		util.LogInfo(ctx, "executing hook", slog.String("hook", hook))
 
 		err := util.ExecShellCmd(ctx, grove.Config.Hooks.Shell, hook)
 		if err != nil {
@@ -19,7 +19,7 @@ func (grove *Grove) executeAfterCheckoutHooks(ctx context.Context) error {
 		}
 	}
 
-	slog.Debug("after checkout hooks executed")
+	slog.DebugContext(ctx, "after checkout hooks executed")
 
 	return nil
 }

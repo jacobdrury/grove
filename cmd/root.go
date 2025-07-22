@@ -32,7 +32,7 @@ var rootCmd = &cobra.Command{
 			return nil
 		}
 
-		slog.Debug("no subcommand found, passing through args to git worktree command", slog.String("args", strings.Join(args, " ")))
+		slog.DebugContext(cmd.Context(), "no subcommand found, passing through args to git worktree command", slog.String("args", strings.Join(args, " ")))
 
 		output, err := git.ExecuteWorkTree(cmd.Context(), strings.Join(args, " "))
 		if err != nil {

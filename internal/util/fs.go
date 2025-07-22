@@ -5,16 +5,18 @@ import (
 	"os"
 )
 
-func InDirectory(dir string, f func() error) error {
+func InDirectory[T any](dir string, f func() (T, error)) (T, error) {
+	var zero T
+
 	wd, err := os.Getwd()
 	if err != nil {
-		return err
+		return zero, err
 	}
 
 	slog.Debug("changing directory", slog.String("path", dir))
 	err = os.Chdir(dir)
 	if err != nil {
-		return err
+		return zero, err
 	}
 
 	defer func() {
@@ -25,5 +27,18 @@ func InDirectory(dir string, f func() error) error {
 		}
 	}()
 
-	return f()
+	result, err := f()
+	if err != nil {
+		return zero, err
+	}
+
+	return result, nil
+}
+
+func InDirectoryNoResult(dir string, f func() error) error {
+	_, err := InDirectory(dir, func() (any, error) {
+		return nil, f()
+	})
+
+	return err
 }
